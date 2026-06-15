@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pocket Caddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokens ── */
+    :root {
+      --green-deep:   #1a3a2a;
+      --green-mid:    #2d5a3d;
+      --green-accent: #4a9b6f;
+      --fairway:      #e8f0e4;
+      --cream:        #f7f4ef;
+      --ink:          #1a1a18;
+      --muted:        #6b7b6e;
+      --white:        #ffffff;
+      --error:        #c0392b;
+      --card-shadow:  0 2px 12px rgba(26,58,42,0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100dvh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--green-deep);
+      color: var(--white);
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+    .flag-icon {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.75rem;
+      line-height: 1;
+      letter-spacing: -0.5px;
+    }
+    header p {
+      font-size: 0.78rem;
+      color: var(--green-accent);
+      margin-top: 3px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Tab bar ── */
+    nav {
+      display: flex;
+      background: var(--green-mid);
+      border-bottom: 2px solid var(--green-accent);
+    }
+    nav button {
+      flex: 1;
+      padding: 13px 4px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.55);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s, border-bottom 0.2s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+    nav button.active {
+      color: var(--white);
+      border-bottom: 2px solid var(--green-accent);
+    }
+
+    /* ── Content panes ── */
+    .pane { display: none; padding: 20px 16px 40px; }
+    .pane.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--card-shadow);
+    }
+    .card h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      color: var(--green-deep);
+      margin-bottom: 4px;
+    }
+    .card .sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── Form elements ── */
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #d0dbd2;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      color: var(--ink);
+      background: var(--cream);
+      margin-bottom: 14px;
+      -moz-appearance: textfield;
+      appearance: textfield;
+      transition: border-color 0.2s;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--green-accent);
+    }
+    input[type="number"]::-webkit-inner-spin-button { display: none; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: var(--green-deep);
+      color: var(--white);
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--green-mid); }
+    .btn:active { background: var(--green-accent); }
+
+    /* ── Result box ── */
+    .result {
+      display: none;
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 12px;
+      background: var(--fairway);
+      border-left: 4px solid var(--green-accent);
+    }
+    .result.visible { display: block; }
+    .result.error { background: #fdecea; border-left-color: var(--error); }
+    .result .club-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.4rem;
+      color: var(--green-deep);
+      line-height: 1;
+    }
+    .result .club-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .result .detail {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .result .error-msg { color: var(--error); font-size: 0.9rem; }
+
+    /* ── Club list ── */
+    .club-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .club-chip {
+      background: var(--cream);
+      border: 1.5px solid #d0dbd2;
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .club-chip .club-id {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem;
+      color: var(--green-deep);
+    }
+    .club-chip .club-dist {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .club-chip.unset { opacity: 0.45; }
+
+    /* ── Edit club form ── */
+    .club-select-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .club-pill {
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #d0dbd2;
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--ink);
+    }
+    .club-pill.selected {
+      background: var(--green-deep);
+      border-color: var(--green-deep);
+      color: var(--white);
+    }
+
+    .save-msg {
+      display: none;
+      margin-top: 12px;
+      font-size: 0.88rem;
+      color: var(--green-accent);
+      font-weight: 600;
+      text-align: center;
+    }
+    .save-msg.visible { display: block; }
+
+    /* ── Hint chips ── */
+    .hint-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .hint {
+      padding: 6px 12px;
+      border-radius: 16px;
+      background: var(--fairway);
+      font-size: 0.8rem;
+      color: var(--green-mid);
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <svg class="flag-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="9" y="6" width="2" height="24" rx="1" fill="#4a9b6f"/>
+      <path d="M11 7 L26 12 L11 17 Z" fill="#ffffff"/>
+      <circle cx="10" cy="30" r="2" fill="#4a9b6f"/>
+    </svg>
+    <div>
+      <h1>Pocket Caddy</h1>
+      <p>Your round, your data</p>
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showTab('caddy')">Caddy</button>
+    <button onclick="showTab('bag')">My Bag</button>
+    <button onclick="showTab('edit')">Edit Clubs</button>
+  </nav>
+
+  <!-- ── CADDY TAB ── -->
+  <div class="pane active" id="pane-caddy">
+    <div class="card">
+      <h2>Club Recommendation</h2>
+      <p class="sub">Enter your shot conditions and we'll pick the right club.</p>
+
+      <label>Distance to pin (yards)</label>
+      <input type="number" id="distance" placeholder="e.g. 150" inputmode="numeric" />
+
+      <label>Wind speed (mph)</label>
+      <div class="hint-row">
+        <button class="hint" onclick="setHint('wind', 0)">No wind</button>
+        <button class="hint" onclick="setHint('wind', -5)">5mph tail</button>
+        <button class="hint" onclick="setHint('wind', 5)">5mph head</button>
+        <button class="hint" onclick="setHint('wind', 10)">10mph head</button>
+      </div>
+      <input type="number" id="wind" placeholder="+ headwind  /  − tailwind" inputmode="numeric" />
+
+      <label>Pin elevation (ft above/below you)</label>
+      <div class="hint-row">
+        <button class="hint" onclick="setHint('elevation', 0)">Flat</button>
+        <button class="hint" onclick="setHint('elevation', 20)">+20ft up</button>
+        <button class="hint" onclick="setHint('elevation', -20)">-20ft down</button>
+      </div>
+      <input type="number" id="elevation" placeholder="+ uphill  /  − downhill" inputmode="numeric" />
+
+      <button class="btn" onclick="getRecommendation()">Pick my club</button>
+
+      <div class="result" id="caddy-result">
+        <div class="club-label">Recommended club</div>
+        <div class="club-name" id="res-club">—</div>
+        <div class="detail" id="res-detail"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BAG TAB ── -->
+  <div class="pane" id="pane-bag">
+    <div class="card">
+      <h2>My Bag</h2>
+      <p class="sub">Your saved distances. Edit them in the Edit Clubs tab.</p>
+      <div class="club-grid" id="bag-grid">
+        <p style="grid-column:1/-1;color:var(--muted);font-size:0.9rem;">Loading…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EDIT TAB ── -->
+  <div class="pane" id="pane-edit">
+    <div class="card">
+      <h2>Edit Club Distances</h2>
+      <p class="sub">Tap a club, enter your typical carry distance, then save.</p>
+
+      <label>Select club</label>
+      <div class="club-select-row" id="club-pills"></div>
+
+      <label>Carry distance (yards)</label>
+      <input type="number" id="edit-distance" placeholder="e.g. 150" inputmode="numeric" />
+
+      <button class="btn" onclick="saveClub()">Save distance</button>
+      <div class="save-msg" id="save-msg">✓ Saved!</div>
+    </div>
+  </div>
+
+  <script>
+    const CLUBS = ["D","W","H","3","4","5","6","7","8","9","PW","SW","60"];
+    let selectedClub = null;
+
+    // ── Tab switching ──
+    function showTab(name) {
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById('pane-' + name).classList.add('active');
+      event.target.classList.add('active');
+      if (name === 'bag') loadBag();
+    }
+
+    // ── Hint buttons ──
+    function setHint(field, value) {
+      document.getElementById(field).value = value;
+    }
+
+    // ── Caddy: get recommendation ──
+    async function getRecommendation() {
+      const distance = parseInt(document.getElementById('distance').value);
+      const wind = parseInt(document.getElementById('wind').value) || 0;
+      const elevation = parseInt(document.getElementById('elevation').value) || 0;
+
+      const resultEl = document.getElementById('caddy-result');
+      resultEl.className = 'result visible';
+
+      if (!distance) {
+        resultEl.classList.add('error');
+        document.getElementById('res-club').textContent = '';
+        document.getElementById('res-detail').innerHTML = '<span class="error-msg">Enter a distance to the pin first.</span>';
+        return;
+      }
+
+      document.getElementById('res-club').textContent = '…';
+      document.getElementById('res-detail').textContent = '';
+
+      try {
+        const res = await fetch('/api/recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ distance, wind, elevation })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          resultEl.classList.remove('error');
+          document.getElementById('res-club').textContent = data.recommended_club;
+          document.getElementById('res-detail').textContent =
+            `Adjusted distance: ${data.adjusted_distance} yds · You typically hit this club ${data.club_typical_distance} yds`;
+        } else {
+          resultEl.classList.add('error');
+          document.getElementById('res-club').textContent = '';
+          document.getElementById('res-detail').innerHTML = `<span class="error-msg">${data.error}</span>`;
+        }
+      } catch {
+        resultEl.classList.add('error');
+        document.getElementById('res-club').textContent = '';
+        document.getElementById('res-detail').innerHTML = '<span class="error-msg">Connection error. Is the server running?</span>';
+      }
+    }
+
+    // ── Bag: load and render club distances ──
+    async function loadBag() {
+      const grid = document.getElementById('bag-grid');
+      grid.innerHTML = '<p style="grid-column:1/-1;color:var(--muted);font-size:0.9rem;">Loading…</p>';
+      try {
+        const res = await fetch('/api/clubs');
+        const clubs = await res.json();
+        grid.innerHTML = clubs.map(c => `
+          <div class="club-chip ${c.distance == null ? 'unset' : ''}">
+            <div class="club-id">${c.club}</div>
+            <div class="club-dist">${c.distance != null ? c.distance + ' yds' : '—'}</div>
+          </div>
+        `).join('');
+      } catch {
+        grid.innerHTML = '<p style="grid-column:1/-1;color:var(--error);font-size:0.88rem;">Could not load clubs.</p>';
+      }
+    }
+
+    // ── Edit: render club pills ──
+    function renderPills(clubs) {
+      const container = document.getElementById('club-pills');
+      container.innerHTML = CLUBS.map(c => {
+        const dist = clubs.find(x => x.club === c)?.distance;
+        return `<button class="club-pill${selectedClub === c ? ' selected' : ''}" onclick="selectClub('${c}', ${dist || 'null'})">${c}</button>`;
+      }).join('');
+    }
+
+    async function loadEditClubs() {
+      const res = await fetch('/api/clubs');
+      const clubs = await res.json();
+      renderPills(clubs);
+    }
+
+    function selectClub(club, currentDist) {
+      selectedClub = club;
+      document.querySelectorAll('.club-pill').forEach(p => {
+        p.classList.toggle('selected', p.textContent === club);
+      });
+      const input = document.getElementById('edit-distance');
+      input.value = currentDist || '';
+      input.focus();
+      document.getElementById('save-msg').classList.remove('visible');
+    }
+
+    async function saveClub() {
+      const distance = document.getElementById('edit-distance').value;
+      const msg = document.getElementById('save-msg');
+      msg.classList.remove('visible');
+
+      if (!selectedClub) { alert('Tap a club first.'); return; }
+      if (!distance) { alert('Enter a distance.'); return; }
+
+      try {
+        const res = await fetch('/api/clubs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ club: selectedClub, distance: parseInt(distance) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          renderPills(data.clubs);
+          msg.textContent = `✓ ${selectedClub} saved at ${distance} yds`;
+          msg.classList.add('visible');
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch {
+        alert('Connection error.');
+      }
+    }
+
+    // ── Init ──
+    loadEditClubs();
+  </script>
+</body>
+</html>
